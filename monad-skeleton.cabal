@@ -21,12 +21,15 @@ source-repository head
 library
   exposed-modules:     Control.Monad.Skeleton
                      , Control.Monad.Skeleton.Internal
+                     , Control.Monad.Trans.Skeleton
   build-depends:       base == 4.*
                      , containers
                      , ghc-prim
+                     , mtl
                      , transformers
                      , transformers-compat
                      , free
+                     , exceptions
   hs-source-dirs: src
   ghc-options: -Wall
   default-language:    Haskell2010
