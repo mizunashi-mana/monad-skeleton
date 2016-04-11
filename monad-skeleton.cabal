@@ -19,8 +19,14 @@ source-repository head
   location: https://github.com/fumieval/monad-skeleton.git
 
 library
-  exposed-modules:     Control.Monad.Skeleton, Control.Monad.Skeleton.Internal
-  build-depends:       base == 4.*, containers, ghc-prim
+  exposed-modules:     Control.Monad.Skeleton
+                     , Control.Monad.Skeleton.Internal
+  build-depends:       base == 4.*
+                     , containers
+                     , ghc-prim
+                     , transformers
+                     , transformers-compat
+                     , free
   hs-source-dirs: src
   ghc-options: -Wall
   default-language:    Haskell2010

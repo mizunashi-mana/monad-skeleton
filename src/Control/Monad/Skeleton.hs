@@ -1,4 +1,10 @@
-{-# LANGUAGE Trustworthy, RankNTypes, GADTs, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE Trustworthy           #-}
+
 module Control.Monad.Skeleton (MonadView(..)
   , hoistMV
   , iterMV
@@ -10,13 +16,16 @@ module Control.Monad.Skeleton (MonadView(..)
   , hoistSkeleton
   , Spine(..)
   ) where
-import Control.Arrow
-import Control.Applicative
-import Control.Monad
-import Control.Category
-import Unsafe.Coerce
-import Control.Monad.Skeleton.Internal
-import Prelude hiding (id, (.))
+
+import           Control.Applicative
+import           Control.Arrow
+import           Control.Category
+import           Control.Monad
+import           Control.Monad.Free.Class
+import           Control.Monad.Skeleton.Internal
+import           Control.Monad.Trans.Class
+import           Prelude                         hiding (id, (.))
+import           Unsafe.Coerce
 
 -- | Re-add a bone.
 boned :: MonadView t (Skeleton t) a -> Skeleton t a
@@ -92,6 +101,14 @@ instance Monad (Skeleton t) where
   {-# INLINE return #-}
   Skeleton (Spine t c) >>= k = Skeleton $ Spine t (c |> Kleisli k)
   {-# INLINE (>>=) #-}
+
+instance MonadTrans Skeleton where
+  lift x = Skeleton $ Spine (x :>>= return) id
+  {-# INLINE lift #-}
+
+instance MonadFree t (Skeleton t) where
+  wrap x = Skeleton $ Spine (x :>>= id) id
+  {-# INLINE wrap #-}
 
 transKleisli :: (m b -> n b) -> Kleisli m a b -> Kleisli n a b
 transKleisli f = unsafeCoerce (f.)
