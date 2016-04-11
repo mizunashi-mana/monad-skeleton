@@ -18,7 +18,6 @@ module Control.Monad.Trans.Skeleton
   , deboneT
   , unboneT
   , bonedT
-  , hoistSkeletonT
   , Spine(..)
   , SkeletonViewT
   , iterT
@@ -90,15 +89,6 @@ unbone = debone
 boneT :: (Monad m) => t a -> SkeletonT t m a
 boneT t = SkeletonT $ return $ Spine (t :>>= return) id
 {-# INLINABLE boneT #-}
-
--- | Lift a transformation between bones into transformation between skeletons.
-hoistSkeletonT :: forall s t m a. (Monad m) =>
-  (forall x. s x -> t x) -> SkeletonT s m a -> SkeletonT t m a
-hoistSkeletonT f = go where
-  go :: forall x. SkeletonT s m x -> SkeletonT t m x
-  go (SkeletonT x) = SkeletonT $ (<$> x) $ \(Spine v c) ->
-    Spine (hoistMV f go v) (transCat (transKleisli go) c)
-{-# INLINE hoistSkeletonT #-}
 
 data MonadView t m x where
   Return :: a -> MonadView t m a
@@ -173,7 +163,7 @@ instance (MonadIO m) => MonadIO (SkeletonT t m) where
 --instance (MonadReader r m) => MonadReader r (SkeletonT t m) where
 --  ask = lift ask
 --  {-# INLINE ask #-}
---  local f = hoistSkeletonT $ local f
+--  local f = lift . local f
 --  {-# INLINE local #-}
 
 instance (MonadState s m) => MonadState s (SkeletonT t m) where
@@ -190,3 +180,7 @@ instance (MonadPlus m) => MonadPlus (SkeletonT t m) where
   mzero = SkeletonT mzero
   {-# INLINE mzero #-}
   mplus (SkeletonT ma) (SkeletonT mb) = SkeletonT $ mplus ma mb
+
+instance (MonadThrow m) => MonadThrow (SkeletonT t m) where
+  throwM = lift . throwM
+  {-# INLINE throwM #-}
