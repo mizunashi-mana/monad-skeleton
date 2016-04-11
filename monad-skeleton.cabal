@@ -28,7 +28,6 @@ library
                      , mtl
                      , transformers
                      , transformers-compat
-                     , free
                      , exceptions
   hs-source-dirs: src
   ghc-options: -Wall

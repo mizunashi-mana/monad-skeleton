@@ -41,7 +41,6 @@ import           Control.Monad.Catch             (MonadCatch (..),
                                                   MonadThrow (..))
 import           Control.Monad.Cont.Class
 import           Control.Monad.Error.Class
-import           Control.Monad.Free.Class
 import           Control.Monad.Identity
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader.Class
@@ -163,10 +162,6 @@ instance MonadTrans (SkeletonT t) where
   lift x = SkeletonT $ (\a -> Spine (Return a) id) <$> x
   {-# INLINE lift #-}
 
-instance Monad m => MonadFree t (SkeletonT t m) where
-  wrap x = SkeletonT $ return $ Spine (x :>>= id) id
-  {-# INLINE wrap #-}
-
 transKleisli :: (m b -> n b) -> Kleisli m a b -> Kleisli n a b
 transKleisli f = unsafeCoerce (f.)
 {-# INLINE transKleisli #-}
@@ -186,3 +181,12 @@ instance (MonadState s m) => MonadState s (SkeletonT t m) where
   {-# INLINE get #-}
   put = lift . put
   {-# INLINE put #-}
+
+instance (MonadPlus m) => Alternative (SkeletonT t m) where
+  empty = mzero
+  SkeletonT ma <|> SkeletonT mb = SkeletonT $ ma `mplus` mb
+
+instance (MonadPlus m) => MonadPlus (SkeletonT t m) where
+  mzero = SkeletonT mzero
+  {-# INLINE mzero #-}
+  mplus (SkeletonT ma) (SkeletonT mb) = SkeletonT $ mplus ma mb

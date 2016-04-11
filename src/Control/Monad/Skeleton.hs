@@ -21,7 +21,6 @@ import           Control.Applicative
 import           Control.Arrow
 import           Control.Category
 import           Control.Monad
-import           Control.Monad.Free.Class
 import           Control.Monad.Skeleton.Internal
 import           Control.Monad.Trans.Class
 import           Prelude                         hiding (id, (.))
@@ -105,10 +104,6 @@ instance Monad (Skeleton t) where
 instance MonadTrans Skeleton where
   lift x = Skeleton $ Spine (x :>>= return) id
   {-# INLINE lift #-}
-
-instance MonadFree t (Skeleton t) where
-  wrap x = Skeleton $ Spine (x :>>= id) id
-  {-# INLINE wrap #-}
 
 transKleisli :: (m b -> n b) -> Kleisli m a b -> Kleisli n a b
 transKleisli f = unsafeCoerce (f.)
